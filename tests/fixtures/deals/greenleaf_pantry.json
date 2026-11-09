@@ -1,0 +1,8 @@
+{
+  "_note": "Synthetic deal for tests. Fictional company; not derived from any real deal.",
+  "deal_id": "SYN-002",
+  "company_name": "Greenleaf Pantry (fictional)",
+  "domain": "greenleaf-pantry.example",
+  "pitch_file": "examples/pitches/greenleaf_pantry.md",
+  "expected_recommendation": "Needs Review"
+}

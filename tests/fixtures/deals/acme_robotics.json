@@ -1,0 +1,8 @@
+{
+  "_note": "Synthetic deal for tests. Fictional company; not derived from any real deal.",
+  "deal_id": "SYN-001",
+  "company_name": "Acme Robotics (fictional)",
+  "domain": "acme-robotics.example",
+  "pitch_file": "examples/pitches/acme_robotics.md",
+  "expected_recommendation": "Maybe"
+}

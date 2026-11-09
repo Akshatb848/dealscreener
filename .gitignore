@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Runtime data
+*.db
+storage/
+models/*.pkl
+examples/output/
+*.log
+
+# Never commit real deal material
+*.xlsx
+*.pptx
+*.docx
+*.pdf
+*.zip

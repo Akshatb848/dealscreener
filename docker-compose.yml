@@ -1,0 +1,92 @@
+# Local stack: PostgreSQL + Redis + API + background worker.
+# Ollama runs on the host (http://host.docker.internal:11434); set RUN_LIVE_LLM=false
+# in .env to run without any LLM (offline extraction mode).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dealscreener}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-dealscreener}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dealscreener}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis_data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment: &app_env
+      DATABASE_URL: postgresql://${POSTGRES_USER:-dealscreener}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-dealscreener}
+      REDIS_URL: redis://redis:6379/0
+      STORAGE_DIR: /data/storage
+      ASYNC_JOBS: ${ASYNC_JOBS:-true}
+      RUN_LIVE_LLM: ${RUN_LIVE_LLM:-false}
+      OLLAMA_PRIMARY_BASE_URL: ${OLLAMA_PRIMARY_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_FALLBACK_BASE_URL: ${OLLAMA_FALLBACK_BASE_URL:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - app_data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build: .
+    command: python worker.py
+    healthcheck:
+      disable: true
+    env_file:
+      - path: .env
+        required: false
+    environment: *app_env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - app_data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  retrain:
+    profiles: [cron]
+    build: .
+    command: python jobs/retrain_cron.py
+    env_file:
+      - path: .env
+        required: false
+    environment: *app_env
+    volumes:
+      - app_data:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+  redis_data:
+  app_data:

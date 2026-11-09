@@ -1,0 +1,8 @@
+{
+  "_note": "Synthetic deal for tests. Fictional company; not derived from any real deal.",
+  "deal_id": "SYN-003",
+  "company_name": "Nimbus Ledger (fictional)",
+  "domain": "nimbus-ledger.example",
+  "pitch_file": "examples/pitches/nimbus_ledger.md",
+  "expected_recommendation": "No"
+}
